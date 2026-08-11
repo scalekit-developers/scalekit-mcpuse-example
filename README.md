@@ -12,7 +12,7 @@ Teammates share one server URL. Each person signs in. Tools see *their* identity
 
 This example does **not** use `@scalekit-sdk/node` and does **not** need a Scalekit client id or secret. The resource server verifies JWTs against Scalekit JWKS.
 
-The mcp-use-shaped provider page lives in [`docs/v2/typescript/server/authentication/providers/scalekit.mdx`](docs/v2/typescript/server/authentication/providers/scalekit.mdx). This README is the runbook for *this* repository.
+The cookbook-style how-to lives in [`docs/v2/typescript/server/authentication/providers/scalekit.mdx`](docs/v2/typescript/server/authentication/providers/scalekit.mdx). This README is the runbook for *this* repository.
 
 > [!IMPORTANT]
 > Use **your own** Scalekit environment. This repository ships placeholders only. Never commit `.env`.
@@ -163,7 +163,7 @@ async (_args, ctx) => {
 | --- | --- |
 | `index.ts` | mcp-use server, OAuth wiring, `whoami` and `greet` |
 | `oauth/scalekit.ts` | JWT + JWKS provider |
-| `docs/v2/.../scalekit.mdx` | Draft of the mcp-use Scalekit provider page |
+| `docs/v2/.../scalekit.mdx` | Cookbook: authenticate an mcp-use server with Scalekit |
 | `.env.example` | Placeholders only |
 
 ## Changing the public URL
@@ -197,7 +197,7 @@ Scalekit also publishes a [MCP auth troubleshooting](https://docs.scalekit.com/a
 
 ## Docs
 
-- [Scalekit provider page (mcp-use draft)](docs/v2/typescript/server/authentication/providers/scalekit.mdx)
+- [Authenticate an mcp-use server with Scalekit](docs/v2/typescript/server/authentication/providers/scalekit.mdx)
 - [Scalekit MCP Auth quickstart](https://docs.scalekit.com/authenticate/mcp/quickstart/)
 - [Scalekit MCP overview](https://docs.scalekit.com/authenticate/mcp/overview/)
 - [mcp-use](https://docs.mcp-use.com)

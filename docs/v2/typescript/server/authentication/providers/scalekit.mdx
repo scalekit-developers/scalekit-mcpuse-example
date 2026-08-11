@@ -1,35 +1,85 @@
 ---
-title: "Scalekit Provider"
-description: "Configure Scalekit OAuth authentication for an MCP server."
+title: Authenticate an mcp-use server with Scalekit
+description: Protect an mcp-use MCP server with Scalekit OAuth 2.1. Clients sign in. Tools see the verified user. No Scalekit client secret on the resource server.
+sidebar:
+  label: mcp-use auth
 ---
 
-> Draft of the mcp-use Scalekit provider page. Intended destination:
-> `docs/v2/typescript/server/authentication/providers/scalekit.mdx`.
-> `oauthScalekitProvider` is not published on npm yet. In this repository,
-> import it from `./oauth/scalekit.js` instead of `mcp-use/oauth/scalekit`.
+import { Steps, Aside } from '@astrojs/starlight/components';
 
-Use `oauthScalekitProvider` when Scalekit is the authorization server. MCP clients register directly with Scalekit through Dynamic Client Registration or Client ID Metadata Document (CIMD), and mcp-use verifies Scalekit-issued access tokens against the MCP resource.
+<Aside type="note" title="Draft in this repository">
+  `oauthScalekitProvider` is not published on npm yet. Import it from `./oauth/scalekit.js` in this repo. The published import will be `mcp-use/oauth/scalekit`.
+</Aside>
 
-The provider does not use `@scalekit-sdk/node` and does not need a Scalekit client id or secret.
+Teammates share one MCP server URL. Each person signs in with Scalekit. Tools see that person's identity on `ctx.auth.user.id`, not a shared API key.
 
-## Configure Scalekit
+Scalekit issues Open Authorization (OAuth) 2.1 access tokens. The mcp-use server verifies each JSON Web Token (JWT) against Scalekit's JSON Web Key Set (JWKS). The resource server never holds a Scalekit client id or secret and does not use `@scalekit-sdk/node`.
 
-In the [Scalekit Dashboard](https://app.scalekit.com):
+## Use this recipe when you need per-user MCP auth
 
-1. Open **MCP servers** and select **Add MCP server**.
-2. Give the server a name. That name appears on the consent screen.
-3. Enable **dynamic client registration** and **Client ID Metadata Document (CIMD)**. Public clients such as Inspector, Claude, and Cursor need at least one of these; keep both on.
-4. Under advanced settings, set **Server URL** to the canonical MCP endpoint, with no trailing slash. For local development that is `http://localhost:3000/mcp`. If the deployed origin is `https://mcp.example.com` and the default base path is `/mcp`, the resource is `https://mcp.example.com/mcp`.
-5. Enable at least one [auth method](https://docs.scalekit.com/mcp/auth-methods/social/) (Google, GitHub, passwordless, or [enterprise SSO](https://docs.scalekit.com/mcp/auth-methods/enterprise/)).
-6. Copy the **Environment URL** (`https://<your-env>.scalekit.cloud`) and the **Resource ID** (`res_…`).
+Use this recipe when:
 
-If you leave **Server URL** empty, Scalekit mints tokens whose `aud` is only `res_…`. The provider still verifies. If you set it, `aud` is `[Server URL, res_…]`. Restart the MCP server after you toggle DCR or CIMD; some clients cache authorization-server metadata.
+- You run an [mcp-use](https://mcp-use.com) server over Streamable HTTP
+- MCP clients must sign in before they call tools
+- Tool data must be scoped to the signed-in person
 
-## Configure the server
+Skip this recipe when you only need a shared machine credential and no user identity.
 
-Treat the environment variables as application configuration and pass `environmentUrl`, `resourceId`, and `resource` explicitly. The provider does not read Scalekit environment variables.
+## On this page
+
+- [Register an MCP server in Scalekit](#register-an-mcp-server-in-scalekit)
+- [Pass environment values into the provider](#pass-environment-values-into-the-provider)
+- [Scope tool data to the signed-in user](#scope-tool-data-to-the-signed-in-user)
+- [Confirm login and token audience](#confirm-login-and-token-audience)
+- [Fix login and 401 failures](#fix-login-and-401-failures)
+
+## Register an MCP server in Scalekit
+
+Scalekit becomes the authorization server. MCP clients register with Dynamic Client Registration (DCR) or a Client ID Metadata Document (CIMD), then sign in. Your process only verifies the bearer token.
+
+**Prerequisites:** Node.js 22.22.2 or newer, a [Scalekit account](https://app.scalekit.com), and at least one [auth method](https://docs.scalekit.com/mcp/auth-methods/social/) enabled (Google, GitHub, passwordless, or [enterprise single sign-on (SSO)](https://docs.scalekit.com/mcp/auth-methods/enterprise/)).
+
+<Steps>
+
+1. ### Add the MCP server
+
+   Open [Scalekit Dashboard](https://app.scalekit.com) → **MCP servers** → **Add MCP server**. Give the server a name. The name appears on the consent screen.
+
+2. ### Enable DCR and CIMD
+
+   Turn on **dynamic client registration** and **Client ID Metadata Document (CIMD)**. Public MCP clients need at least one of these. Keep both on.
+
+   Restart the mcp-use process after you change DCR or CIMD. Some MCP clients cache authorization-server metadata.
+
+3. ### Set the Server URL
+
+   Under advanced settings, set **Server URL** to the canonical MCP endpoint with no trailing slash:
+
+   ```text
+   http://localhost:3000/mcp
+   ```
+
+   A deployed origin `https://mcp.example.com` with the default `/mcp` base path uses `https://mcp.example.com/mcp`.
+
+   An empty Server URL still works. Scalekit then mints tokens whose `aud` is only `res_…`. A filled Server URL sets `aud` to `[Server URL, res_…]`.
+
+4. ### Copy the values you will pass to the server
+
+   Save the MCP server. Copy:
+
+   | Value | Where it appears |
+   | --- | --- |
+   | Environment URL | Dashboard → API credentials → `https://<your-env>.scalekit.cloud` |
+   | Resource ID | This MCP server page → `res_…` |
+
+</Steps>
+
+## Pass environment values into the provider
+
+The provider does not read Scalekit environment variables on its own. Pass `environmentUrl`, `resourceId`, and `resource` explicitly. `resource` must match the Scalekit **Server URL** exactly.
 
 ```bash
+# Never hardcode secrets; use environment variables.
 SCALEKIT_ENVIRONMENT_URL=https://your-env.scalekit.cloud
 SCALEKIT_RESOURCE_ID=res_xxxxxxxx
 MCP_URL=https://mcp.example.com/mcp
@@ -59,15 +109,21 @@ const server = new MCPServer({
 export default server;
 ```
 
-`resource` must match the Scalekit **Server URL** exactly. mcp-use also reads `MCP_URL` when `resource` is omitted; pass it explicitly so the protected resource and the token `aud` stay aligned.
+Verification rules:
 
-The provider verifies JWTs against `{environmentUrl}/keys`. It accepts either the environment-root issuer or the resource-scoped issuer `{environmentUrl}/resources/{resourceId}`. The default audience is `resourceId`. That id is the per-server security boundary: a token minted for a different MCP server in the same Scalekit environment must fail.
+| Check | Expected value |
+| --- | --- |
+| Signature | JWKS at `{environmentUrl}/keys` |
+| `iss` | Environment root, or `{environmentUrl}/resources/{resourceId}` |
+| `aud` | Must include `resourceId` (`res_…`) |
 
-`audience` is optional. Set it only when your tokens carry a URL audience and not `res_…`.
+`resourceId` is the per-server security boundary. A token minted for a different MCP server in the same Scalekit environment must fail.
 
-## Use Scalekit identity
+`audience` is optional. Set `audience` only when tokens carry a URL audience and not `res_…`.
 
-Scalekit maps the token `sub` to `ctx.auth.user.id`. It also sets `subjectType` so tools do not treat a machine client as a person: `user` under authorization code, `machine` when `sub` equals the client id. Optional `org_id` and `sid` become `organizationId` and `sessionId`. Scalekit permissions are top-level `ctx.auth.permissions`. OAuth grants are `ctx.auth.scopes`.
+## Scope tool data to the signed-in user
+
+Scalekit maps token `sub` to `ctx.auth.user.id`. `subjectType` is `user` for an authorization-code login and `machine` when `sub` equals the client id. Optional `org_id` and `sid` become `organizationId` and `sessionId`. OAuth grants are `ctx.auth.scopes`. Scalekit permissions are `ctx.auth.permissions`.
 
 ```typescript
 server.tool(
@@ -100,30 +156,77 @@ server.tool(
 );
 ```
 
-## Verify the setup
+## Confirm login and token audience
 
-Confirm that the client registers with Scalekit, the token `aud` includes the `res_…` resource id, invalid tokens are rejected, and tools that check `subjectType` or scopes reject callers that do not match.
+Run the server, open Inspector, and complete Scalekit consent. `whoami` should return a `usr_…` id, `subjectType: "user"`, and an `aud` array that includes your `res_…`.
 
-<CardGroup cols={2}>
-  <Card
-    title="Runnable Scalekit example"
-    icon="github"
-    href="https://github.com/scalekit-developers/scalekit-mcpuse-example"
-  >
-    Compare with the Scalekit mcp-use example.
-  </Card>
-  <Card
-    title="Scalekit MCP Auth quickstart"
-    icon="book-open"
-    href="https://docs.scalekit.com/authenticate/mcp/quickstart/"
-  >
-    Register an MCP server and enable DCR and CIMD.
-  </Card>
-  <Card
-    title="User Context"
-    icon="user"
-    href="/v2/typescript/server/authentication/user-context"
-  >
-    Use Scalekit identity, scopes, and permissions.
-  </Card>
-</CardGroup>
+```bash
+npm run dev
+```
+
+| Endpoint | URL |
+| --- | --- |
+| MCP | `http://localhost:3000/mcp` |
+| Inspector | `http://localhost:3000/mcp/inspector` |
+
+1. Connect Inspector to `http://localhost:3000/mcp`. The first call returns **401** and starts Scalekit login.
+2. Complete consent.
+3. Call `whoami`.
+
+Expected claims:
+
+```json
+{
+  "iss": "https://your-env.scalekit.cloud",
+  "aud": ["http://localhost:3000/mcp", "res_xxxxxxxx"]
+}
+```
+
+`iss` may also be `https://your-env.scalekit.cloud/resources/res_xxxxxxxx`. The provider accepts both.
+
+A public URL change is two matching updates: Scalekit **Server URL** and `MCP_URL`. Restart the process. `resourceId` stays the audience check.
+
+## Fix login and 401 failures
+
+<details>
+<summary>Server throws on boot about SCALEKIT_* or MCP_URL</summary>
+
+Copy `.env.example` to `.env` and fill every value. Empty strings fail the same way as missing keys.
+
+</details>
+
+<details>
+<summary>Inspector never starts login</summary>
+
+DCR or CIMD is off, or the mcp-use process was not restarted after you toggled them.
+
+</details>
+
+<details>
+<summary>Login works, every tool returns 401</summary>
+
+Scalekit **Server URL** does not match `MCP_URL`. Check trailing slash, port, and `http` vs `https`.
+
+</details>
+
+<details>
+<summary>whoami aud has only res_…</summary>
+
+Server URL was left empty in the dashboard. The provider still binds on `resourceId`.
+
+</details>
+
+<details>
+<summary>Need claim details on a 401</summary>
+
+Set `MCP_USE_OAUTH_DEBUG=1` and retry. Logs print `iss`, `aud`, and `sub`. Logs never print the raw token.
+
+</details>
+
+See also [Scalekit MCP auth troubleshooting](https://docs.scalekit.com/authenticate/mcp/troubleshooting/).
+
+## Next steps
+
+- Run this repository: clone, copy `.env.example` to `.env`, then `npm run dev`. See the [example README](https://github.com/scalekit-developers/scalekit-mcpuse-example).
+- Register more MCP servers in the [Scalekit MCP Auth quickstart](https://docs.scalekit.com/authenticate/mcp/quickstart/).
+- Read the [Scalekit MCP overview](https://docs.scalekit.com/authenticate/mcp/overview/).
