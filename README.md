@@ -10,7 +10,7 @@ An [mcp-use](https://mcp-use.com) MCP server that authenticates with [Scalekit](
 
 Teammates share one server URL. Each person signs in. Tools see *their* identity (`ctx.auth.user.id`), not a shared API key.
 
-This example does **not** use `@scalekit-sdk/node` and does **not** need a Scalekit client id or secret. The resource server verifies JWTs against Scalekit JWKS — the same pattern mcp-use uses for Auth0 and Clerk.
+This example does **not** use `@scalekit-sdk/node` and does **not** need a Scalekit client id or secret. The resource server verifies JWTs against Scalekit JWKS.
 
 The mcp-use-shaped provider page lives in [`docs/v2/typescript/server/authentication/providers/scalekit.mdx`](docs/v2/typescript/server/authentication/providers/scalekit.mdx). This README is the runbook for *this* repository.
 
@@ -200,5 +200,5 @@ Scalekit also publishes a [MCP auth troubleshooting](https://docs.scalekit.com/a
 - [Scalekit provider page (mcp-use draft)](docs/v2/typescript/server/authentication/providers/scalekit.mdx)
 - [Scalekit MCP Auth quickstart](https://docs.scalekit.com/authenticate/mcp/quickstart/)
 - [Scalekit MCP overview](https://docs.scalekit.com/authenticate/mcp/overview/)
-- [mcp-use Clerk provider page](https://docs.mcp-use.com/v2/typescript/server/authentication/providers/clerk) (the shape this draft mirrors)
+- [mcp-use](https://docs.mcp-use.com)
 - [MCP authorization spec](https://modelcontextprotocol.io/specification/latest/basic/authorization)

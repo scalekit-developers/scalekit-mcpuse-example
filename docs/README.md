@@ -1,6 +1,6 @@
 # Docs drafts
 
-`v2/typescript/server/authentication/providers/scalekit.mdx` is the Scalekit page as it would appear on [mcp-use developer docs](https://docs.mcp-use.com/v2/typescript/server/authentication/providers/clerk).
+`v2/typescript/server/authentication/providers/scalekit.mdx` is the Scalekit page as it would appear on [mcp-use developer docs](https://docs.mcp-use.com).
 
 It is not published there yet. Read it here, then copy it into the mcp-use docs tree when the provider ships as `mcp-use/oauth/scalekit`.
 
