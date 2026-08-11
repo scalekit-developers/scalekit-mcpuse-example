@@ -1,8 +1,8 @@
 /**
  * Scalekit OAuth provider for mcp-use.
  *
- * Same shape as first-class adapters (Clerk / Auth0): oauthCustomProvider +
- * jose JWT/JWKS + a typed user map. No @scalekit-sdk/node, no client secret.
+ * oauthCustomProvider + jose JWT/JWKS + a typed user map.
+ * No @scalekit-sdk/node, no client secret.
  *
  * createJwtVerifier is @internal in mcp-use 2.1.0, so this file verifies with
  * jose and returns the AuthInfo shape wrapOAuthTokenVerifier asserts.
