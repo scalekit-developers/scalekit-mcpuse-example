@@ -1,0 +1,40 @@
+{
+  "name": "scalekit-mcpuse-example",
+  "type": "module",
+  "private": true,
+  "engines": {
+    "node": ">=22.22.2"
+  },
+  "version": "1.0.0",
+  "description": "mcp-use MCP server authenticated with Scalekit OAuth 2.1",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/scalekit-developers/scalekit-mcpuse-example.git"
+  },
+  "homepage": "https://github.com/scalekit-developers/scalekit-mcpuse-example#readme",
+  "bugs": {
+    "url": "https://github.com/scalekit-developers/scalekit-mcpuse-example/issues"
+  },
+  "keywords": [
+    "mcp",
+    "mcp-use",
+    "scalekit",
+    "oauth",
+    "oauth2.1"
+  ],
+  "scripts": {
+    "dev": "mcp-use dev",
+    "start": "mcp-use start",
+    "typecheck": "mcp-use typecheck"
+  },
+  "dependencies": {
+    "jose": "^6.2.8",
+    "mcp-use": "2.1.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.0",
+    "typescript": "^7.0.2"
+  }
+}
