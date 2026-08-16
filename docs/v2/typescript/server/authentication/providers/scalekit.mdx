@@ -5,11 +5,7 @@ sidebar:
   label: mcp-use auth
 ---
 
-import { Steps, Aside } from '@astrojs/starlight/components';
-
-<Aside type="note" title="Draft in this repository">
-  `oauthScalekitProvider` is not published on npm yet. Import it from `./oauth/scalekit.js` in this repo. The published import will be `mcp-use/oauth/scalekit`.
-</Aside>
+import { Steps } from '@astrojs/starlight/components';
 
 Teammates share one MCP server URL. Each person signs in with Scalekit. Tools see that person's identity on `ctx.auth.user.id`, not a shared API key.
 

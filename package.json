@@ -29,7 +29,6 @@
     "typecheck": "mcp-use typecheck"
   },
   "dependencies": {
-    "jose": "^6.2.8",
     "mcp-use": "2.1.0",
     "zod": "^4.4.3"
   },
