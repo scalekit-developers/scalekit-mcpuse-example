@@ -1,6 +1,6 @@
 import { MCPServer } from "mcp-use";
+import { oauthScalekitProvider } from "mcp-use/oauth/scalekit";
 import { z } from "zod";
-import { oauthScalekitProvider } from "./oauth/scalekit.js";
 
 function requiredEnv(name: string): string {
   const value = process.env[name]?.trim();
