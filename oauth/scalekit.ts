@@ -100,6 +100,10 @@ export function oauthScalekitProvider(
         }
       },
     }),
+    // mcp-use requires this object. It writes issuer into RFC 9728
+    // protected-resource metadata and also serves a copy at
+    // /.well-known/oauth-authorization-server on this process.
+    // Scalekit still serves the live AS document. This copy is static.
     oauthMetadata: {
       issuer: resourceIssuer,
       authorization_endpoint: `${resourceIssuer}/oauth/authorize`,
