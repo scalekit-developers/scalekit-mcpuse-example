@@ -183,7 +183,7 @@ The verifier does not change. `resourceId` stays the audience check.
 | Symptom | Likely cause |
 | --- | --- |
 | Server throws on boot about `SCALEKIT_*` or `MCP_URL` | `.env` is missing or a value is empty |
-| Inspector never starts login | DCR/CIMD off, or the client still has cached authorization-server metadata — reconnect Inspector |
+| Inspector never starts login | DCR and CIMD both off — enable at least one and save. If they are already on, reconnect Inspector to drop cached metadata |
 | Login works, every tool is 401 | **Server URL** does not match `MCP_URL` (trailing slash, wrong port, `http` vs `https`) |
 | `whoami` `aud` has only `res_…` | Server URL was left empty in the dashboard — still valid; this example binds on `resourceId` |
 | Need claim details on a 401 | Set `MCP_USE_OAUTH_DEBUG=1` and retry. Logs print `iss`, `aud`, `sub` — never the raw token |
