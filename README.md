@@ -69,7 +69,7 @@ Follow the [MCP Auth quickstart](https://docs.scalekit.com/authenticate/mcp/quic
    - **Resource ID** — `res_…`
 
 > [!CAUTION]
-> If you toggle DCR or CIMD later, restart this example. Some MCP clients cache authorization-server metadata.
+> If you toggle DCR or CIMD later, reconnect the MCP client. Inspector and other clients cache authorization-server metadata. This process does not.
 
 ## 2. Configure this repo
 
@@ -135,6 +135,8 @@ oauth: oauthScalekitProvider({
 }),
 ```
 
+`resourceId` is the JWT `aud` (`res_…`). `resource` is the public MCP URL. mcp-use puts `resource` in RFC 9728 protected-resource metadata. It is not a second audience check.
+
 | Check | Source |
 | --- | --- |
 | Signature | JWKS at `{environmentUrl}/keys` (from live AS metadata — not a guessed path) |
@@ -181,7 +183,7 @@ The verifier does not change. `resourceId` stays the audience check.
 | Symptom | Likely cause |
 | --- | --- |
 | Server throws on boot about `SCALEKIT_*` or `MCP_URL` | `.env` is missing or a value is empty |
-| Inspector never starts login | DCR/CIMD off, or you did not restart after toggling them |
+| Inspector never starts login | DCR/CIMD off, or the client still has cached authorization-server metadata — reconnect Inspector |
 | Login works, every tool is 401 | **Server URL** does not match `MCP_URL` (trailing slash, wrong port, `http` vs `https`) |
 | `whoami` `aud` has only `res_…` | Server URL was left empty in the dashboard — still valid; this example binds on `resourceId` |
 | Need claim details on a 401 | Set `MCP_USE_OAUTH_DEBUG=1` and retry. Logs print `iss`, `aud`, `sub` — never the raw token |
